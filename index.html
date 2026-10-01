@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 <title>Birthday Book</title>
 
@@ -11,213 +11,376 @@
   box-sizing: border-box;
   -webkit-user-select: none;
   user-select: none;
+  -webkit-touch-callout: none;
 }
 
 html,
 body {
-  margin: 0;
   width: 100%;
   height: 100%;
+  margin: 0;
   overflow: hidden;
-  background: #e9e4dc;
 }
 
 body {
   display: flex;
   justify-content: center;
   align-items: center;
-  font-family: sans-serif;
+  background:
+    radial-gradient(circle at center, #faf8f4 0%, #e5dfd6 100%);
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
 }
 
-/* 本全体 */
+/* =========================
+   BOOK
+========================= */
+
 .book {
   position: relative;
-  width: 92vw;
-  max-width: 760px;
+
+  width: min(92vw, 820px);
   aspect-ratio: 2 / 1;
+
   perspective: 2200px;
+  transform-style: preserve-3d;
 }
 
-/* 左右のページ */
+/* =========================
+   BASE PAGES
+========================= */
+
 .base-page {
   position: absolute;
+
   top: 0;
+
   width: 50%;
   height: 100%;
+
+  overflow: hidden;
+
   background:
     linear-gradient(
       90deg,
-      rgba(0,0,0,.04),
-      transparent 10%,
-      transparent 90%,
-      rgba(0,0,0,.04)
+      rgba(0,0,0,.07),
+      transparent 12%,
+      transparent 88%,
+      rgba(0,0,0,.035)
     ),
-    #fffdf8;
+    #fffdf9;
 
   box-shadow:
-    0 10px 30px rgba(0,0,0,.18);
+    0 12px 35px rgba(0,0,0,.18);
 }
 
 .left-page {
   left: 0;
-  border-radius: 10px 0 0 10px;
+
+  border-radius: 12px 0 0 12px;
 }
 
 .right-page {
   right: 0;
-  border-radius: 0 10px 10px 0;
+
+  border-radius: 0 12px 12px 0;
 }
 
-/* めくる紙 */
+/* 本の中央部分 */
+.book::after {
+  content: "";
+
+  position: absolute;
+
+  left: 50%;
+  top: 0;
+
+  width: 3px;
+  height: 100%;
+
+  transform: translateX(-50%);
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0,0,0,.12),
+      rgba(255,255,255,.7),
+      rgba(0,0,0,.08)
+    );
+
+  opacity: .55;
+
+  z-index: 8;
+
+  pointer-events: none;
+}
+
+/* =========================
+   MOVING PAPER
+========================= */
+
 .turn-page {
   position: absolute;
-  top: 0;
+
   left: 50%;
+  top: 0;
+
   width: 50%;
   height: 100%;
 
   transform-origin: left center;
+
   transform-style: preserve-3d;
 
   z-index: 20;
 
   touch-action: none;
+
   cursor: grab;
 
   will-change: transform;
+
+  /* 紙の初期位置 */
+  transform:
+    rotateY(0deg)
+    translateZ(0px)
+    scaleX(1);
 }
 
 .turn-page.dragging {
   cursor: grabbing;
 }
 
-/* 紙の表と裏 */
+/* =========================
+   PAPER FACES
+========================= */
+
 .face {
   position: absolute;
+
   inset: 0;
+
+  overflow: hidden;
 
   background:
     linear-gradient(
       90deg,
-      rgba(0,0,0,.08),
-      transparent 12%,
-      transparent 85%,
-      rgba(0,0,0,.04)
+      rgba(0,0,0,.085),
+      transparent 14%,
+      transparent 82%,
+      rgba(0,0,0,.045)
     ),
-    #fffdf8;
+    #fffdf9;
 
   backface-visibility: hidden;
 
-  box-shadow:
-    0 3px 12px rgba(0,0,0,.15);
+  transform-style: preserve-3d;
 }
 
 .front {
-  border-radius: 0 10px 10px 0;
+  border-radius: 0 12px 12px 0;
 }
 
 .back {
   transform: rotateY(180deg);
-  border-radius: 10px 0 0 10px;
-}
 
-/* 紙の中央に少し柔らかい陰影 */
-.front::after,
-.back::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-
-  pointer-events: none;
+  border-radius: 12px 0 0 12px;
 
   background:
     linear-gradient(
       90deg,
-      rgba(0,0,0,.10),
+      rgba(0,0,0,.045),
       transparent 18%,
-      transparent 82%,
-      rgba(0,0,0,.04)
-    );
-
-  opacity: .45;
+      transparent 88%,
+      rgba(0,0,0,.09)
+    ),
+    #fffdf9;
 }
 
-/* 文字 */
+/* =========================
+   PAPER TEXTURE
+========================= */
+
+.face::before {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  pointer-events: none;
+
+  opacity: .13;
+
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      rgba(0,0,0,.025) 0px,
+      rgba(0,0,0,.025) 1px,
+      transparent 1px,
+      transparent 4px
+    );
+}
+
+/* =========================
+   PAGE CONTENT
+========================= */
+
 .text {
   position: absolute;
+
   inset: 0;
 
   display: flex;
+
   justify-content: center;
   align-items: center;
 
   text-align: center;
 
+  padding: 20px;
+
   font-size: clamp(18px, 4vw, 32px);
+
+  line-height: 1.6;
 
   color: #555;
 
-  padding: 20px;
+  pointer-events: none;
 }
 
-/* 紙の下に落ちる影 */
+/* =========================
+   PAGE EDGE
+========================= */
+
+.turn-page::after {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  right: -2px;
+
+  width: 4px;
+  height: 100%;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0,0,0,.12),
+      rgba(255,255,255,.8),
+      rgba(0,0,0,.12)
+    );
+
+  opacity: .7;
+
+  pointer-events: none;
+}
+
+/* =========================
+   MOVING SHADOW
+========================= */
+
 .page-shadow {
   position: absolute;
 
-  top: 2%;
   left: 50%;
+  top: 3%;
 
   width: 48%;
-  height: 96%;
+  height: 94%;
+
+  z-index: 12;
 
   pointer-events: none;
 
-  z-index: 15;
+  background: rgba(0,0,0,.22);
 
-  background: rgba(0,0,0,.18);
-
-  filter: blur(14px);
+  filter: blur(18px);
 
   opacity: 0;
 
   transform-origin: left center;
 
-  transition: opacity .08s linear;
+  will-change: transform, opacity;
+}
+
+/* =========================
+   LITTLE HINT
+========================= */
+
+.hint {
+  position: fixed;
+
+  bottom: 25px;
+  left: 0;
+  right: 0;
+
+  text-align: center;
+
+  color: rgba(0,0,0,.42);
+
+  font-size: 13px;
+
+  pointer-events: none;
+
+  transition: opacity .5s ease;
+}
+
+.hint.hide {
+  opacity: 0;
 }
 </style>
 </head>
+
 
 <body>
 
 <div class="book">
 
-  <!-- 左側 -->
+  <!-- 左ページ -->
   <div class="base-page left-page">
+
     <div class="text">
       Birthday Book
     </div>
+
   </div>
 
-  <!-- 右側 -->
+
+  <!-- 右ページ -->
   <div class="base-page right-page"></div>
 
+
   <!-- ページの影 -->
-  <div class="page-shadow" id="pageShadow"></div>
+  <div
+    class="page-shadow"
+    id="pageShadow">
+  </div>
+
 
   <!-- 実際に動く紙 -->
-  <div class="turn-page" id="turnPage">
+  <div
+    class="turn-page"
+    id="turnPage">
 
+    <!-- 表 -->
     <div class="face front">
+
       <div class="text">
         指で紙をつかんで<br>
         左へ動かしてみてね
       </div>
+
     </div>
 
+
+    <!-- 裏 -->
     <div class="face back">
+
       <div class="text">
         右へ戻してみてね
       </div>
+
     </div>
 
   </div>
@@ -225,25 +388,54 @@ body {
 </div>
 
 
+<div
+  class="hint"
+  id="hint">
+  ページを指でドラッグしてみてね
+</div>
+
+
 <script>
 
-const page = document.getElementById("turnPage");
-const shadow = document.getElementById("pageShadow");
+/* =====================================================
+   ELEMENTS
+===================================================== */
+
+const page =
+  document.getElementById("turnPage");
+
+const shadow =
+  document.getElementById("pageShadow");
+
+const hint =
+  document.getElementById("hint");
+
+
+/* =====================================================
+   STATE
+===================================================== */
 
 let dragging = false;
+
 let startX = 0;
-let currentX = 0;
+
+let startAngle = 0;
 
 let currentAngle = 0;
 
+let pointerId = null;
 
-/* -------------------------
-   指の位置
-------------------------- */
+
+/* =====================================================
+   GET POINTER X
+===================================================== */
 
 function getX(e) {
 
-  if (e.touches && e.touches.length) {
+  if (
+    e.touches &&
+    e.touches.length
+  ) {
     return e.touches[0].clientX;
   }
 
@@ -251,158 +443,348 @@ function getX(e) {
 }
 
 
-/* -------------------------
-   ページを動かす
-------------------------- */
+/* =====================================================
+   CLAMP
+===================================================== */
+
+function clamp(
+  value,
+  min,
+  max
+) {
+
+  return Math.max(
+    min,
+    Math.min(max, value)
+  );
+
+}
+
+
+/* =====================================================
+   UPDATE PAGE
+===================================================== */
 
 function updatePage(angle) {
 
-  angle = Math.max(-180, Math.min(0, angle));
+  angle =
+    clamp(
+      angle,
+      -180,
+      0
+    );
 
-  currentAngle = angle;
+
+  currentAngle =
+    angle;
+
 
   /*
-    少しだけ「紙がしなる」感じを追加
+    0〜1に変換
   */
 
-  const progress = Math.abs(angle) / 180;
+  const progress =
+    Math.abs(angle) / 180;
 
-  const bend = Math.sin(progress * Math.PI) * 7;
+
+  /*
+    紙が中央付近で
+    少しだけしなる
+  */
+
+  const bend =
+    Math.sin(
+      progress * Math.PI
+    );
+
+
+  /*
+    奥行き
+  */
+
+  const depth =
+    bend * 10;
+
+
+  /*
+    横方向の縮み
+  */
 
   const scaleX =
-    1 - Math.sin(progress * Math.PI) * 0.025;
-
-
-  page.style.transform =
-    `rotateY(${angle}deg)
-     translateZ(${bend}px)
-     scaleX(${scaleX})`;
+    1 -
+    bend * 0.035;
 
 
   /*
-    ページが曲がるほど影を濃くする
+    紙の回転
   */
 
+  page.style.transform =
+    `
+      rotateY(${angle}deg)
+      translateZ(${depth}px)
+      scaleX(${scaleX})
+    `;
+
+
+  /*
+    ページの影
+  */
+
+  const shadowOpacity =
+    bend * .55;
+
+
   shadow.style.opacity =
-    Math.sin(progress * Math.PI) * .55;
+    shadowOpacity;
+
+
+  /*
+    影もページの動きに合わせる
+  */
+
+  const shadowRotate =
+    angle * .48;
+
+
+  const shadowScale =
+    1 +
+    bend * .25;
 
 
   shadow.style.transform =
-    `rotateY(${angle * .5}deg)
-     scaleX(${1 + progress * .25})`;
+    `
+      rotateY(${shadowRotate}deg)
+      scaleX(${shadowScale})
+    `;
+
 }
 
 
-/* -------------------------
-   指でつかむ
-------------------------- */
+/* =====================================================
+   POINTER DOWN
+===================================================== */
 
-page.addEventListener("pointerdown", function(e) {
+page.addEventListener(
+  "pointerdown",
+  function(e) {
 
-  dragging = true;
+    dragging = true;
 
-  page.classList.add("dragging");
+    pointerId =
+      e.pointerId;
 
-  startX = getX(e);
-
-  currentX = startX;
-
-  page.style.transition = "none";
-
-  page.setPointerCapture?.(e.pointerId);
-
-});
+    page.classList.add(
+      "dragging"
+    );
 
 
-/* -------------------------
-   指についてくる
-------------------------- */
+    /*
+      今の角度を基準にする
+    */
 
-page.addEventListener("pointermove", function(e) {
-
-  if (!dragging) return;
-
-  currentX = getX(e);
-
-  const distance = currentX - startX;
-
-  /*
-    右へ動かす → 角度を戻す
-    左へ動かす → ページをめくる
-  */
-
-  let angle =
-    currentAngle + distance * 0.75;
-
-  /*
-    次の計算の基準を更新
-  */
-
-  startX = currentX;
-
-  updatePage(angle);
-
-});
+    startAngle =
+      currentAngle;
 
 
-/* -------------------------
-   指を離す
-------------------------- */
+    startX =
+      getX(e);
+
+
+    /*
+      アニメーション解除
+    */
+
+    page.style.transition =
+      "none";
+
+
+    /*
+      iPhone / PC
+    */
+
+    try {
+
+      page.setPointerCapture(
+        e.pointerId
+      );
+
+    } catch (_) {}
+
+
+    /*
+      ヒントを消す
+    */
+
+    hint.classList.add(
+      "hide"
+    );
+
+  }
+);
+
+
+/* =====================================================
+   POINTER MOVE
+===================================================== */
+
+page.addEventListener(
+  "pointermove",
+  function(e) {
+
+    if (!dragging) {
+      return;
+    }
+
+
+    const x =
+      getX(e);
+
+
+    /*
+      指の移動距離
+    */
+
+    const distance =
+      x - startX;
+
+
+    /*
+      1px → 0.9度
+    */
+
+    const angle =
+      startAngle +
+      distance * .9;
+
+
+    /*
+      リアルタイム更新
+    */
+
+    updatePage(
+      angle
+    );
+
+  }
+);
+
+
+/* =====================================================
+   RELEASE
+===================================================== */
 
 function releasePage() {
 
-  if (!dragging) return;
+  if (!dragging) {
+    return;
+  }
+
 
   dragging = false;
 
-  page.classList.remove("dragging");
+  page.classList.remove(
+    "dragging"
+  );
 
-  page.style.transition =
-    "transform .45s cubic-bezier(.22,.61,.36,1)";
 
   /*
-    半分以上めくっていたら最後まで
-    それ未満なら元へ
+    半分以上なら
+    最後までめくる
   */
 
-  if (Math.abs(currentAngle) > 90) {
+  const shouldFlip =
+    Math.abs(currentAngle) > 90;
 
-    updatePage(-180);
+
+  page.style.transition =
+    `
+      transform
+      .48s
+      cubic-bezier(
+        .22,
+        .61,
+        .36,
+        1
+      )
+    `;
+
+
+  if (shouldFlip) {
+
+    updatePage(
+      -180
+    );
 
   } else {
 
-    updatePage(0);
+    updatePage(
+      0
+    );
 
   }
 
-  setTimeout(() => {
 
-    page.style.transition = "";
+  /*
+    アニメーション終了後
+    transitionを解除
+  */
 
-  }, 500);
+  setTimeout(
+    function() {
+
+      page.style.transition =
+        "";
+
+    },
+    520
+  );
 
 }
 
 
-page.addEventListener("pointerup", releasePage);
+/* =====================================================
+   POINTER UP
+===================================================== */
 
-page.addEventListener("pointercancel", releasePage);
+page.addEventListener(
+  "pointerup",
+  releasePage
+);
+
+page.addEventListener(
+  "pointercancel",
+  releasePage
+);
 
 
-/* -------------------------
-   iPhone用タッチ処理
-------------------------- */
+/* =====================================================
+   TOUCH MOVE
+===================================================== */
 
 page.addEventListener(
   "touchmove",
   function(e) {
 
     if (dragging) {
+
       e.preventDefault();
+
     }
 
   },
-  { passive: false }
+  {
+    passive: false
+  }
+);
+
+
+/* =====================================================
+   INITIAL
+===================================================== */
+
+updatePage(
+  0
 );
 
 </script>
