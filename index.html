@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Birthday Book</title>
+
+<style>
+* {
+  box-sizing: border-box;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+body {
+  margin: 0;
+  background: #eee;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  overflow: hidden;
+  font-family: sans-serif;
+}
+
+.book {
+  width: 90vw;
+  max-width: 700px;
+  aspect-ratio: 2 / 1;
+  position: relative;
+  perspective: 1800px;
+}
+
+.page {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  background: white;
+  box-shadow: 0 5px 20px rgba(0,0,0,.2);
+}
+
+.left {
+  left: 0;
+  border-radius: 8px 0 0 8px;
+}
+
+.right {
+  right: 0;
+  border-radius: 0 8px 8px 0;
+}
+
+/* 指で動かす紙 */
+.turn {
+  right: 0;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  z-index: 10;
+  cursor: grab;
+  touch-action: none;
+}
+
+.turn:active {
+  cursor: grabbing;
+}
+
+.front,
+.back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  background: white;
+  border-radius: 0 8px 8px 0;
+}
+
+.back {
+  transform: rotateY(180deg);
+  border-radius: 8px 0 0 8px;
+}
+
+.text {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-size: clamp(18px, 4vw, 32px);
+  color: #555;
+  padding: 20px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="book">
+
+  <div class="page left">
+    <div class="text">
+      ここから<br>Birthday Book
+    </div>
+  </div>
+
+  <div class="page right"></div>
+
+  <div class="page turn" id="turnPage">
+    <div class="front">
+      <div class="text">
+        指で紙をつかんで<br>
+        左に動かしてみてね
+      </div>
+    </div>
+
+    <div class="back">
+      <div class="text">
+        ページをめくった！
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const page = document.getElementById("turnPage");
+
+let startX = 0;
+let currentX = 0;
+let dragging = false;
+
+function getX(e) {
+  if (e.touches) {
+    return e.touches[0].clientX;
+  }
+  return e.clientX;
+}
+
+/* PC・スマホ共通 */
+page.addEventListener("pointerdown", function(e) {
+  dragging = true;
+  startX = getX(e);
+  currentX = startX;
+
+  page.setPointerCapture?.(e.pointerId);
+});
+
+page.addEventListener("pointermove", function(e) {
+  if (!dragging) return;
+
+  currentX = getX(e);
+
+  let distance = currentX - startX;
+
+  /*
+    指を左へ動かすほど
+    ページがリアルタイムで回転する
+  */
+  let angle = Math.max(-180, Math.min(0, distance * 0.9));
+
+  page.style.transform = `rotateY(${angle}deg)`;
+});
+
+function release() {
+  if (!dragging) return;
+
+  dragging = false;
+
+  let distance = currentX - startX;
+
+  if (distance < -100) {
+    page.style.transition = "transform .35s ease";
+    page.style.transform = "rotateY(-180deg)";
+  } else {
+    page.style.transition = "transform .35s ease";
+    page.style.transform = "rotateY(0deg)";
+  }
+
+  setTimeout(() => {
+    page.style.transition = "";
+  }, 400);
+}
+
+page.addEventListener("pointerup", release);
+page.addEventListener("pointercancel", release);
+</script>
+
+</body>
+</html>
