@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Birthday Book</title>
 
 <style>
@@ -12,81 +13,176 @@
   user-select: none;
 }
 
+html,
 body {
   margin: 0;
-  background: #eee;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #e9e4dc;
+}
+
+body {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  overflow: hidden;
   font-family: sans-serif;
 }
 
+/* 本全体 */
 .book {
-  width: 90vw;
-  max-width: 700px;
-  aspect-ratio: 2 / 1;
   position: relative;
-  perspective: 1800px;
+  width: 92vw;
+  max-width: 760px;
+  aspect-ratio: 2 / 1;
+  perspective: 2200px;
 }
 
-.page {
+/* 左右のページ */
+.base-page {
   position: absolute;
   top: 0;
   width: 50%;
   height: 100%;
-  background: white;
-  box-shadow: 0 5px 20px rgba(0,0,0,.2);
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0,0,0,.04),
+      transparent 10%,
+      transparent 90%,
+      rgba(0,0,0,.04)
+    ),
+    #fffdf8;
+
+  box-shadow:
+    0 10px 30px rgba(0,0,0,.18);
 }
 
-.left {
+.left-page {
   left: 0;
-  border-radius: 8px 0 0 8px;
+  border-radius: 10px 0 0 10px;
 }
 
-.right {
+.right-page {
   right: 0;
-  border-radius: 0 8px 8px 0;
+  border-radius: 0 10px 10px 0;
 }
 
-/* 指で動かす紙 */
-.turn {
-  right: 0;
+/* めくる紙 */
+.turn-page {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 50%;
+  height: 100%;
+
   transform-origin: left center;
   transform-style: preserve-3d;
-  z-index: 10;
-  cursor: grab;
+
+  z-index: 20;
+
   touch-action: none;
+  cursor: grab;
+
+  will-change: transform;
 }
 
-.turn:active {
+.turn-page.dragging {
   cursor: grabbing;
 }
 
-.front,
-.back {
+/* 紙の表と裏 */
+.face {
   position: absolute;
   inset: 0;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0,0,0,.08),
+      transparent 12%,
+      transparent 85%,
+      rgba(0,0,0,.04)
+    ),
+    #fffdf8;
+
   backface-visibility: hidden;
-  background: white;
-  border-radius: 0 8px 8px 0;
+
+  box-shadow:
+    0 3px 12px rgba(0,0,0,.15);
+}
+
+.front {
+  border-radius: 0 10px 10px 0;
 }
 
 .back {
   transform: rotateY(180deg);
-  border-radius: 8px 0 0 8px;
+  border-radius: 10px 0 0 10px;
 }
 
+/* 紙の中央に少し柔らかい陰影 */
+.front::after,
+.back::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0,0,0,.10),
+      transparent 18%,
+      transparent 82%,
+      rgba(0,0,0,.04)
+    );
+
+  opacity: .45;
+}
+
+/* 文字 */
 .text {
-  height: 100%;
+  position: absolute;
+  inset: 0;
+
   display: flex;
   justify-content: center;
   align-items: center;
+
   text-align: center;
+
   font-size: clamp(18px, 4vw, 32px);
+
   color: #555;
+
   padding: 20px;
+}
+
+/* 紙の下に落ちる影 */
+.page-shadow {
+  position: absolute;
+
+  top: 2%;
+  left: 50%;
+
+  width: 48%;
+  height: 96%;
+
+  pointer-events: none;
+
+  z-index: 15;
+
+  background: rgba(0,0,0,.18);
+
+  filter: blur(14px);
+
+  opacity: 0;
+
+  transform-origin: left center;
+
+  transition: opacity .08s linear;
 }
 </style>
 </head>
@@ -95,92 +191,220 @@ body {
 
 <div class="book">
 
-  <div class="page left">
+  <!-- 左側 -->
+  <div class="base-page left-page">
     <div class="text">
-      ここから<br>Birthday Book
+      Birthday Book
     </div>
   </div>
 
-  <div class="page right"></div>
+  <!-- 右側 -->
+  <div class="base-page right-page"></div>
 
-  <div class="page turn" id="turnPage">
-    <div class="front">
+  <!-- ページの影 -->
+  <div class="page-shadow" id="pageShadow"></div>
+
+  <!-- 実際に動く紙 -->
+  <div class="turn-page" id="turnPage">
+
+    <div class="face front">
       <div class="text">
         指で紙をつかんで<br>
-        左に動かしてみてね
+        左へ動かしてみてね
       </div>
     </div>
 
-    <div class="back">
+    <div class="face back">
       <div class="text">
-        ページをめくった！
+        右へ戻してみてね
       </div>
     </div>
+
   </div>
 
 </div>
 
-<script>
-const page = document.getElementById("turnPage");
 
+<script>
+
+const page = document.getElementById("turnPage");
+const shadow = document.getElementById("pageShadow");
+
+let dragging = false;
 let startX = 0;
 let currentX = 0;
-let dragging = false;
+
+let currentAngle = 0;
+
+
+/* -------------------------
+   指の位置
+------------------------- */
 
 function getX(e) {
-  if (e.touches) {
+
+  if (e.touches && e.touches.length) {
     return e.touches[0].clientX;
   }
+
   return e.clientX;
 }
 
-/* PC・スマホ共通 */
+
+/* -------------------------
+   ページを動かす
+------------------------- */
+
+function updatePage(angle) {
+
+  angle = Math.max(-180, Math.min(0, angle));
+
+  currentAngle = angle;
+
+  /*
+    少しだけ「紙がしなる」感じを追加
+  */
+
+  const progress = Math.abs(angle) / 180;
+
+  const bend = Math.sin(progress * Math.PI) * 7;
+
+  const scaleX =
+    1 - Math.sin(progress * Math.PI) * 0.025;
+
+
+  page.style.transform =
+    `rotateY(${angle}deg)
+     translateZ(${bend}px)
+     scaleX(${scaleX})`;
+
+
+  /*
+    ページが曲がるほど影を濃くする
+  */
+
+  shadow.style.opacity =
+    Math.sin(progress * Math.PI) * .55;
+
+
+  shadow.style.transform =
+    `rotateY(${angle * .5}deg)
+     scaleX(${1 + progress * .25})`;
+}
+
+
+/* -------------------------
+   指でつかむ
+------------------------- */
+
 page.addEventListener("pointerdown", function(e) {
+
   dragging = true;
+
+  page.classList.add("dragging");
+
   startX = getX(e);
+
   currentX = startX;
 
+  page.style.transition = "none";
+
   page.setPointerCapture?.(e.pointerId);
+
 });
 
+
+/* -------------------------
+   指についてくる
+------------------------- */
+
 page.addEventListener("pointermove", function(e) {
+
   if (!dragging) return;
 
   currentX = getX(e);
 
-  let distance = currentX - startX;
+  const distance = currentX - startX;
 
   /*
-    指を左へ動かすほど
-    ページがリアルタイムで回転する
+    右へ動かす → 角度を戻す
+    左へ動かす → ページをめくる
   */
-  let angle = Math.max(-180, Math.min(0, distance * 0.9));
 
-  page.style.transform = `rotateY(${angle}deg)`;
+  let angle =
+    currentAngle + distance * 0.75;
+
+  /*
+    次の計算の基準を更新
+  */
+
+  startX = currentX;
+
+  updatePage(angle);
+
 });
 
-function release() {
+
+/* -------------------------
+   指を離す
+------------------------- */
+
+function releasePage() {
+
   if (!dragging) return;
 
   dragging = false;
 
-  let distance = currentX - startX;
+  page.classList.remove("dragging");
 
-  if (distance < -100) {
-    page.style.transition = "transform .35s ease";
-    page.style.transform = "rotateY(-180deg)";
+  page.style.transition =
+    "transform .45s cubic-bezier(.22,.61,.36,1)";
+
+  /*
+    半分以上めくっていたら最後まで
+    それ未満なら元へ
+  */
+
+  if (Math.abs(currentAngle) > 90) {
+
+    updatePage(-180);
+
   } else {
-    page.style.transition = "transform .35s ease";
-    page.style.transform = "rotateY(0deg)";
+
+    updatePage(0);
+
   }
 
   setTimeout(() => {
+
     page.style.transition = "";
-  }, 400);
+
+  }, 500);
+
 }
 
-page.addEventListener("pointerup", release);
-page.addEventListener("pointercancel", release);
+
+page.addEventListener("pointerup", releasePage);
+
+page.addEventListener("pointercancel", releasePage);
+
+
+/* -------------------------
+   iPhone用タッチ処理
+------------------------- */
+
+page.addEventListener(
+  "touchmove",
+  function(e) {
+
+    if (dragging) {
+      e.preventDefault();
+    }
+
+  },
+  { passive: false }
+);
+
 </script>
 
 </body>
