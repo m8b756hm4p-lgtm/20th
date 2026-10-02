@@ -76,10 +76,9 @@
       box-shadow: 0 14px 36px rgba(75, 53, 38, 0.2);
     }
 
-    /* ページの余白も背景と同じ色にする */
     .page {
       overflow: hidden;
-      background: var(--background);
+      background: var(--paper);
     }
 
     .page img {
@@ -87,15 +86,10 @@
       width: 100%;
       height: 100%;
       object-fit: contain;
-      background: var(--background);
+      background: var(--paper);
       user-select: none;
       -webkit-user-drag: none;
       pointer-events: none;
-    }
-
-    /* PageFlipの外側の背景 */
-    .stf__parent {
-      background: var(--background) !important;
     }
 
     #message {
@@ -122,47 +116,26 @@
     <div id="book-wrap">
       <div id="book" aria-label="Birthday book">
 
+        <!-- 表紙 -->
         <div class="page" data-density="hard">
           <img src="page1.jpg" alt="表紙">
         </div>
 
-        <div class="page">
-          <img src="page2.jpg" alt="2ページ目">
-        </div>
-        <div class="page">
-          <img src="page3.jpg" alt="3ページ目">
-        </div>
-        <div class="page">
-          <img src="page4.jpg" alt="4ページ目">
-        </div>
-        <div class="page">
-          <img src="page5.jpg" alt="5ページ目">
-        </div>
-        <div class="page">
-          <img src="page6.jpg" alt="6ページ目">
-        </div>
-        <div class="page">
-          <img src="page7.jpg" alt="7ページ目">
-        </div>
-        <div class="page">
-          <img src="page8.jpg" alt="8ページ目">
-        </div>
-        <div class="page">
-          <img src="page9.jpg" alt="9ページ目">
-        </div>
-        <div class="page">
-          <img src="page10.jpg" alt="10ページ目">
-        </div>
-        <div class="page">
-          <img src="page11.jpg" alt="11ページ目">
-        </div>
-        <div class="page">
-          <img src="page12.jpg" alt="12ページ目">
-        </div>
-        <div class="page">
-          <img src="page13.jpg" alt="13ページ目">
-        </div>
+        <!-- 中のページ -->
+        <div class="page"><img src="page2.jpg" alt="2ページ目"></div>
+        <div class="page"><img src="page3.jpg" alt="3ページ目"></div>
+        <div class="page"><img src="page4.jpg" alt="4ページ目"></div>
+        <div class="page"><img src="page5.jpg" alt="5ページ目"></div>
+        <div class="page"><img src="page6.jpg" alt="6ページ目"></div>
+        <div class="page"><img src="page7.jpg" alt="7ページ目"></div>
+        <div class="page"><img src="page8.jpg" alt="8ページ目"></div>
+        <div class="page"><img src="page9.jpg" alt="9ページ目"></div>
+        <div class="page"><img src="page10.jpg" alt="10ページ目"></div>
+        <div class="page"><img src="page11.jpg" alt="11ページ目"></div>
+        <div class="page"><img src="page12.jpg" alt="12ページ目"></div>
+        <div class="page"><img src="page13.jpg" alt="13ページ目"></div>
 
+        <!-- 裏表紙 -->
         <div class="page" data-density="hard">
           <img src="page14.jpg" alt="裏表紙">
         </div>
@@ -193,9 +166,12 @@
         return;
       }
 
-      const spreadRatio = (2000 / 1600) * 2;
+      const pageRatio = 2000 / 1600;
+      const spreadRatio = pageRatio * 2;
 
-      function setBookSize() {
+      let resizeTimer;
+
+      function getBookSize() {
         const availableWidth = bookWrap.clientWidth;
         const availableHeight = bookWrap.clientHeight;
 
@@ -204,10 +180,16 @@
           availableHeight * spreadRatio
         );
 
-        const spreadHeight = spreadWidth / spreadRatio;
+        return {
+          width: spreadWidth,
+          height: spreadWidth / spreadRatio
+        };
+      }
 
-        bookElement.style.width = spreadWidth + "px";
-        bookElement.style.height = spreadHeight + "px";
+      function setBookSize() {
+        const size = getBookSize();
+        bookElement.style.width = size.width + "px";
+        bookElement.style.height = size.height + "px";
       }
 
       setBookSize();
@@ -238,15 +220,34 @@
         document.querySelectorAll(".page")
       );
 
+      /*
+       * 表紙・裏表紙の状態を判定する。
+       * 外側の影を調整し、不要な影が目立たないようにする。
+       */
+      function updateCoverAppearance(pageIndex) {
+        const lastPage = pageFlip.getPageCount() - 1;
+        const isCover = pageIndex === 0 || pageIndex === lastPage;
+
+        bookWrap.classList.toggle("cover-only", isCover);
+
+        bookElement.style.boxShadow = isCover
+          ? "none"
+          : "0 14px 36px rgba(75, 53, 38, 0.2)";
+      }
+
+      pageFlip.on("flip", (event) => {
+        updateCoverAppearance(event.data);
+      });
+
+      updateCoverAppearance(pageFlip.getCurrentPageIndex());
+
       document.querySelectorAll(".page img").forEach((img) => {
         img.addEventListener("error", () => {
           showMessage(
-            "画像が表示されない場合は、GitHubに page1.jpg〜page14.jpg の名前でアップロードしたか確認してね。"
+            "画像が表示されない場合は、page1.jpg〜page14.jpg の名前を確認してね。"
           );
         }, { once: true });
       });
-
-      let resizeTimer;
 
       function resizeBook() {
         clearTimeout(resizeTimer);
