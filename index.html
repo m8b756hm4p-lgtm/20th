@@ -29,34 +29,119 @@
     }
 
     body {
+      color: var(--text);
+    }
+
+    /* 背景動画 */
+    #bg-video {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+      background: var(--background);
+    }
+
+    /* 動画を少し落ち着いた雰囲気にする */
+    .video-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      background: rgba(30, 20, 25, 0.12);
+      pointer-events: none;
+    }
+
+    /* 最初の封筒画面 */
+    #intro {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 24px;
+      padding-top: max(24px, env(safe-area-inset-top));
+      padding-bottom: max(24px, env(safe-area-inset-bottom));
+      transition: opacity 0.6s ease;
+    }
+
+    #envelope-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: min(78vw, 380px);
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      animation: float 3s ease-in-out infinite;
+      transition:
+        transform 0.7s ease,
+        opacity 0.7s ease;
+    }
+
+    #envelope-button img {
+      display: block;
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.2));
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    #envelope-button.opening {
+      animation: none;
+      transform: translateY(-35px) rotateX(35deg) scale(1.12);
+      opacity: 0;
+    }
+
+    #intro.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+
+    /* 本の画面 */
+    #book-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 3;
+      display: none;
+      flex-direction: column;
+      align-items: center;
       padding:
-        max(8px, env(safe-area-inset-top))
+        max(12px, env(safe-area-inset-top))
         max(8px, env(safe-area-inset-right))
         max(8px, env(safe-area-inset-bottom))
         max(8px, env(safe-area-inset-left));
+      opacity: 0;
     }
 
-    .app {
-      width: 100%;
-      height: 100%;
-      min-height: 0;
+    #book-screen.visible {
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
+      animation: book-appear 1s ease forwards;
     }
 
-    .hint {
-      flex: 0 0 auto;
-      margin: 0;
-      color: var(--text);
-      font-size: clamp(11px, 2.3vw, 14px);
-      letter-spacing: 0.06em;
-      text-align: center;
+    @keyframes book-appear {
+      from {
+        opacity: 0;
+        transform: translateY(18px) scale(0.97);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
     }
 
     #book-wrap {
@@ -67,13 +152,13 @@
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      background: var(--background);
+      background: transparent;
     }
 
     #book {
       margin: 0 auto;
-      background: var(--background);
-      box-shadow: 0 14px 36px rgba(75, 53, 38, 0.2);
+      background: transparent;
+      box-shadow: 0 14px 36px rgba(40, 25, 25, 0.22);
     }
 
     .page {
@@ -92,20 +177,69 @@
       pointer-events: none;
     }
 
+    /* Apple Musicプレイヤー */
+    #music-area {
+      display: none;
+      flex: 0 0 auto;
+      width: 100%;
+      max-width: 500px;
+      padding-top: 6px;
+    }
+
+    #music-area iframe {
+      display: block;
+      width: 100%;
+      height: 150px;
+      border: 0;
+      border-radius: 12px;
+    }
+
     #message {
       display: none;
-      max-width: 92vw;
-      color: var(--text);
+      color: white;
       font-size: 13px;
       line-height: 1.5;
       text-align: center;
+      padding: 8px;
     }
 
+    @media (prefers-reduced-motion: reduce) {
+      #envelope-button {
+        animation: none;
+      }
+    }
   </style>
 </head>
 
 <body>
-  <main class="app">
+
+  <!-- 背景動画：自動再生・ミュート・ループ -->
+  <video
+    id="bg-video"
+    autoplay
+    muted
+    loop
+    playsinline
+    preload="auto"
+  >
+    <source src="background.mp4" type="video/mp4">
+  </video>
+
+  <div class="video-overlay"></div>
+
+  <!-- 最初に表示する封筒 -->
+  <section id="intro">
+    <button
+      id="envelope-button"
+      type="button"
+      aria-label="封筒を開く"
+    >
+      <img src="envelope.png" alt="手紙の封筒">
+    </button>
+  </section>
+
+  <!-- 本を開いたあとの画面 -->
+  <main id="book-screen">
 
     <div id="book-wrap">
       <div id="book" aria-label="Birthday book">
@@ -137,6 +271,17 @@
       </div>
     </div>
 
+    <!-- Apple Musicの再生プレイヤー -->
+    <div id="music-area">
+      <iframe
+        id="music-player"
+        title="Apple Music"
+        allow="autoplay *; encrypted-media *; fullscreen *; clipboard-write"
+        sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-top-navigation-by-user-activation"
+        loading="eager"
+      ></iframe>
+    </div>
+
     <p id="message"></p>
   </main>
 
@@ -144,111 +289,125 @@
 
   <script>
     window.addEventListener("load", () => {
+      const video = document.getElementById("bg-video");
+      const intro = document.getElementById("intro");
+      const envelopeButton = document.getElementById("envelope-button");
+      const bookScreen = document.getElementById("book-screen");
       const bookElement = document.getElementById("book");
       const bookWrap = document.getElementById("book-wrap");
+      const musicArea = document.getElementById("music-area");
+      const musicPlayer = document.getElementById("music-player");
       const message = document.getElementById("message");
+
+      let opened = false;
+      let pageFlip = null;
+      let resizeTimer;
+
+      // 背景動画を再生する
+      video.play().catch(() => {
+        // iPhone側の制限などで失敗しても、封筒操作は可能
+      });
 
       function showMessage(text) {
         message.textContent = text;
         message.style.display = "block";
       }
 
-      if (!window.St || !window.St.PageFlip) {
-        showMessage(
-          "本を読み込めませんでした。通信環境を確認して再読み込みしてください。"
-        );
-        return;
-      }
-
-      const pageRatio = 2000 / 1600;
-      const spreadRatio = pageRatio * 2;
-
-      let resizeTimer;
-
-      function getBookSize() {
+      // 縦画面でも本の見開きが収まるサイズにする
+      function setBookSize() {
         const availableWidth = bookWrap.clientWidth;
         const availableHeight = bookWrap.clientHeight;
+        const spreadRatio = (2000 / 1600) * 2;
 
         const spreadWidth = Math.min(
           availableWidth,
           availableHeight * spreadRatio
         );
 
-        return {
-          width: spreadWidth,
-          height: spreadWidth / spreadRatio
-        };
+        const spreadHeight = spreadWidth / spreadRatio;
+
+        bookElement.style.width = spreadWidth + "px";
+        bookElement.style.height = spreadHeight + "px";
       }
 
-      function setBookSize() {
-        const size = getBookSize();
-        bookElement.style.width = size.width + "px";
-        bookElement.style.height = size.height + "px";
-      }
-
-      setBookSize();
-
-      const pageFlip = new St.PageFlip(bookElement, {
-        width: 400,
-        height: 320,
-        size: "stretch",
-        minWidth: 200,
-        maxWidth: 1600,
-        minHeight: 160,
-        maxHeight: 1280,
-
-        startPage: 0,
-        usePortrait: false,
-        showCover: true,
-
-        drawShadow: true,
-        maxShadowOpacity: 0.3,
-        flippingTime: 850,
-
-        mobileScrollSupport: false,
-        swipeDistance: 20,
-        useMouseEvents: true
-      });
-
-      pageFlip.loadFromHTML(
-        document.querySelectorAll(".page")
-      );
-
-      /*
-       * 表紙・裏表紙の状態を判定する。
-       * 外側の影を調整し、不要な影が目立たないようにする。
-       */
-      function updateCoverAppearance(pageIndex) {
-        const lastPage = pageFlip.getPageCount() - 1;
-        const isCover = pageIndex === 0 || pageIndex === lastPage;
-
-        bookWrap.classList.toggle("cover-only", isCover);
-
-        bookElement.style.boxShadow = isCover
-          ? "none"
-          : "0 14px 36px rgba(75, 53, 38, 0.2)";
-      }
-
-      pageFlip.on("flip", (event) => {
-        updateCoverAppearance(event.data);
-      });
-
-      updateCoverAppearance(pageFlip.getCurrentPageIndex());
-
-      document.querySelectorAll(".page img").forEach((img) => {
-        img.addEventListener("error", () => {
+      function startBook() {
+        if (!window.St || !window.St.PageFlip) {
           showMessage(
-            "画像が表示されない場合は、page1.jpg〜page14.jpg の名前を確認してね。"
+            "本を読み込めませんでした。通信環境を確認して再読み込みしてください。"
           );
-        }, { once: true });
+          return;
+        }
+
+        setBookSize();
+
+        pageFlip = new St.PageFlip(bookElement, {
+          width: 400,
+          height: 320,
+          size: "stretch",
+          minWidth: 200,
+          maxWidth: 1600,
+          minHeight: 160,
+          maxHeight: 1280,
+
+          startPage: 0,
+          usePortrait: false,
+          showCover: true,
+
+          drawShadow: true,
+          maxShadowOpacity: 0.3,
+          flippingTime: 850,
+
+          mobileScrollSupport: false,
+          swipeDistance: 20,
+          useMouseEvents: true
+        });
+
+        pageFlip.loadFromHTML(
+          document.querySelectorAll("#book .page")
+        );
+
+        document.querySelectorAll("#book .page img").forEach((img) => {
+          img.addEventListener("error", () => {
+            showMessage(
+              "画像を読み込めませんでした。page1.jpg〜page14.jpgの名前を確認してください。"
+            );
+          }, { once: true });
+        });
+      }
+
+      // 封筒をタップしたときの処理
+      envelopeButton.addEventListener("click", () => {
+        if (opened) return;
+        opened = true;
+
+        // タップ直後にApple Musicプレイヤーを読み込む
+        musicPlayer.src =
+          "https://embed.music.apple.com/jp/album/joyride/1831921913?i=1831921929&autoplay=1";
+
+        envelopeButton.classList.add("opening");
+        intro.classList.add("fade-out");
+
+        // 封筒のアニメーション後に本を表示
+        setTimeout(() => {
+          intro.style.display = "none";
+          bookScreen.classList.add("visible");
+          musicArea.style.display = "block";
+
+          // 表示領域が確定してから本を初期化
+          requestAnimationFrame(() => {
+            startBook();
+          });
+        }, 650);
       });
 
       function resizeBook() {
         clearTimeout(resizeTimer);
 
         resizeTimer = setTimeout(() => {
-          setBookSize();
-          pageFlip.update();
+          if (pageFlip) {
+            setBookSize();
+            pageFlip.update();
+          }
         }, 200);
       }
 
@@ -256,5 +415,6 @@
       window.addEventListener("orientationchange", resizeBook);
     });
   </script>
+
 </body>
 </html>
