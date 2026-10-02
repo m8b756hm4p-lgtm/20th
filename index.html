@@ -1,10 +1,9 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0">
-
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Birthday Book</title>
 
 <style>
@@ -12,234 +11,169 @@
   box-sizing: border-box;
 }
 
-html,
-body {
+html, body {
   margin: 0;
   width: 100%;
   height: 100%;
   overflow: hidden;
+  background: #f5efe5;
+  font-family: sans-serif;
 }
 
 body {
   display: flex;
   justify-content: center;
   align-items: center;
-
-  background:
-    radial-gradient(
-      circle,
-      #fffdf9 0%,
-      #e8e1d8 100%
-    );
-
-  font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    "Helvetica Neue",
-    sans-serif;
+  padding: 8px;
 }
 
-/* 本の入れ物 */
+.app {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.hint {
+  margin: 0;
+  color: #756458;
+  font-size: 12px;
+}
+
+#book-wrap {
+  width: 100%;
+  height: calc(100% - 25px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 #book {
-  width: 92vw;
-  max-width: 850px;
-  height: 70vh;
-  max-height: 600px;
+  box-shadow: 0 12px 35px #6b514533;
 }
 
-/* ページ */
 .page {
-  background: #fffdf9;
-
-  color: #555;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  text-align: center;
-
+  background: #fffdf8;
   overflow: hidden;
-
-  box-shadow:
-    0 4px 18px rgba(0,0,0,.12);
 }
 
-/* ページの中身 */
-.page-content {
-  width: 100%;
-  height: 100%;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  padding: 30px;
-
-  font-size: clamp(
-    18px,
-    4vw,
-    32px
-  );
-
-  line-height: 1.6;
-}
-
-/* Canva画像を入れる場合 */
-.page-content img {
-  width: 100%;
-  height: 100%;
-
-  object-fit: cover;
-
+.page img {
   display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
+@media (orientation: portrait) {
+  .hint::after {
+    content: "（iPhoneを横向きにしてね）";
+  }
 }
 </style>
-
-<!-- ページめくりライブラリ -->
-<script
-  src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.min.js">
-</script>
-
 </head>
 
 <body>
+<main class="app">
 
-<div id="book">
+  <p class="hint">
+    ページの端を指でスワイプしてめくってね
+  </p>
 
-  <!-- 表紙 -->
-  <div class="page" data-density="hard">
+  <div id="book-wrap">
+    <div id="book">
 
-    <div class="page-content">
-      🎂<br>
-      Birthday Book
+      <!-- Canvaで作った画像を順番に配置 -->
+      <div class="page">
+        <img src="page1.jpg" alt="1ページ目">
+      </div>
+
+      <div class="page">
+        <img src="page2.jpg" alt="2ページ目">
+      </div>
+
+      <div class="page">
+        <img src="page3.jpg" alt="3ページ目">
+      </div>
+
+      <div class="page">
+        <img src="page4.jpg" alt="4ページ目">
+      </div>
+
+      <div class="page">
+        <img src="page5.jpg" alt="5ページ目">
+      </div>
+
+      <div class="page">
+        <img src="page6.jpg" alt="6ページ目">
+      </div>
+
     </div>
-
   </div>
+</main>
 
-
-  <!-- 1ページ -->
-  <div class="page">
-
-    <div class="page-content">
-      ここから<br>
-      大切なページ
-    </div>
-
-  </div>
-
-
-  <!-- 2ページ -->
-  <div class="page">
-
-    <div class="page-content">
-      指でページを<br>
-      めくってみてね
-    </div>
-
-  </div>
-
-
-  <!-- 3ページ -->
-  <div class="page">
-
-    <div class="page-content">
-      Happy Birthday!
-    </div>
-
-  </div>
-
-
-  <!-- 最後 -->
-  <div class="page" data-density="hard">
-
-    <div class="page-content">
-      FIN
-    </div>
-
-  </div>
-
-</div>
-
+<script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.min.js"></script>
 
 <script>
+window.addEventListener("load", () => {
+  const book = document.getElementById("book");
+  const wrap = document.getElementById("book-wrap");
 
-const book =
-  document.getElementById("book");
+  if (!window.St || !window.St.PageFlip) {
+    document.querySelector(".hint").textContent =
+      "本を読み込めませんでした。通信環境を確認してね。";
+    return;
+  }
 
+  // 1ページは2000×1600px。
+  // 見開き全体は横長になるので、画面内に収める。
+  const pageRatio = 2000 / 1600;
+  const spreadRatio = pageRatio * 2;
 
-const pageFlip =
-  new St.PageFlip(
-    book,
-    {
+  const availableWidth = wrap.clientWidth;
+  const availableHeight = wrap.clientHeight;
 
-      /* 基準サイズ */
-      width: 400,
-      height: 560,
-
-      /* 画面に合わせて伸縮 */
-      size: "stretch",
-
-      minWidth: 280,
-      maxWidth: 800,
-
-      minHeight: 390,
-      maxHeight: 650,
-
-      /* 本を中央に合わせる */
-      autoSize: true,
-
-      /* 表紙あり */
-      showCover: true,
-
-      /* 紙を柔らかくする */
-      mobileScrollSupport: false,
-
-      /* 指・マウス操作 */
-      useMouseEvents: true,
-
-      /* ページをめくる速度 */
-      flippingTime: 850,
-
-      /* ページの影 */
-      drawShadow: true,
-
-      /* 影の濃さ */
-      maxShadowOpacity: 0.45,
-
-      /* クリックだけで勝手にめくらない */
-      disableFlipByClick: true,
-
-      /* スマホでの最低ドラッグ距離 */
-      swipeDistance: 20
-
-    }
+  const spreadWidth = Math.min(
+    availableWidth,
+    availableHeight * spreadRatio
   );
 
+  const spreadHeight = spreadWidth / spreadRatio;
 
-/*
-  HTMLページを読み込む
-*/
-pageFlip.loadFromHTML(
-  document.querySelectorAll(".page")
-);
+  book.style.width = spreadWidth + "px";
+  book.style.height = spreadHeight + "px";
 
+  const pageFlip = new St.PageFlip(book, {
+    width: 400,
+    height: 320,
+    size: "stretch",
+    minWidth: 200,
+    maxWidth: 1600,
+    minHeight: 160,
+    maxHeight: 1280,
 
-/*
-  ページ番号を確認
-*/
-pageFlip.on(
-  "flip",
-  function(e) {
+    usePortrait: false,
+    showCover: false,
+    startPage: 0,
 
-    console.log(
-      "現在のページ:",
-      e.data
-    );
+    drawShadow: true,
+    maxShadowOpacity: 0.3,
+    flippingTime: 850,
 
-  }
-);
+    mobileScrollSupport: false,
+    swipeDistance: 20,
+    useMouseEvents: true
+  });
 
+  pageFlip.loadFromHTML(
+    document.querySelectorAll(".page")
+  );
+});
 </script>
 
 </body>
