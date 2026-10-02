@@ -374,11 +374,14 @@
     });
 
     function loadMusic() {
-      if (musicLoaded) return;
+  musicPlayer.src = "";
+  musicLoaded = false;
 
-      musicPlayer.src = musicURL;
-      musicLoaded = true;
-    }
+  musicPlayer.src =
+    "https://embed.music.apple.com/jp/album/joyride/1831921913?i=1831921929&autoplay=1";
+
+  musicLoaded = true;
+}
 
     function openBook() {
       if (opening) return;
