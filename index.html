@@ -2,179 +2,261 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Birthday Book</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f5efe5">
+  <title>Birthday Book</title>
 
-<style>
-* {
-  box-sizing: border-box;
-}
+  <style>
+    :root {
+      --background: #f5efe5;
+      --paper: #fffdf8;
+      --text: #756458;
+    }
 
-html, body {
-  margin: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  background: #f5efe5;
-  font-family: sans-serif;
-}
+    * {
+      box-sizing: border-box;
+    }
 
-body {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 8px;
-}
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--background);
+      font-family: -apple-system, BlinkMacSystemFont,
+        "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+    }
 
-.app {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding:
+        max(8px, env(safe-area-inset-top))
+        max(8px, env(safe-area-inset-right))
+        max(8px, env(safe-area-inset-bottom))
+        max(8px, env(safe-area-inset-left));
+    }
 
-.hint {
-  margin: 0;
-  color: #756458;
-  font-size: 12px;
-}
+    .app {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
 
-#book-wrap {
-  width: 100%;
-  height: calc(100% - 25px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+    .hint {
+      flex: 0 0 auto;
+      margin: 0;
+      color: var(--text);
+      font-size: clamp(11px, 2.3vw, 14px);
+      letter-spacing: 0.06em;
+      text-align: center;
+    }
 
-#book {
-  box-shadow: 0 12px 35px #6b514533;
-}
+    #book-wrap {
+      width: 100%;
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-.page {
-  background: #fffdf8;
-  overflow: hidden;
-}
+    #book {
+      margin: 0 auto;
+      box-shadow: 0 14px 36px rgba(75, 53, 38, 0.2);
+    }
 
-.page img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  user-select: none;
-  -webkit-user-drag: none;
-  pointer-events: none;
-}
+    .page {
+      overflow: hidden;
+      background: var(--paper);
+    }
 
-@media (orientation: portrait) {
-  .hint::after {
-    content: "（iPhoneを横向きにしてね）";
-  }
-}
-</style>
+    .page img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: var(--paper);
+      user-select: none;
+      -webkit-user-drag: none;
+      pointer-events: none;
+    }
+
+    #message {
+      display: none;
+      max-width: 92vw;
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    @media (orientation: portrait) {
+      .hint::after {
+        content: "（iPhoneを横向きにすると見やすいよ）";
+      }
+    }
+  </style>
 </head>
 
 <body>
-<main class="app">
+  <main class="app">
+    <p class="hint">ページの端を指でスワイプしてめくってね</p>
 
-  <p class="hint">
-    ページの端を指でスワイプしてめくってね
-  </p>
+    <div id="book-wrap">
+      <div id="book" aria-label="Birthday book">
 
-  <div id="book-wrap">
-    <div id="book">
+        <!-- 1枚目：表紙 -->
+        <div class="page" data-density="hard">
+          <img src="page1.jpg" alt="表紙">
+        </div>
 
-      <!-- Canvaで作った画像を順番に配置 -->
-      <div class="page">
-        <img src="page1.jpg" alt="1ページ目">
+        <!-- 2〜13枚目：中のページ -->
+        <div class="page">
+          <img src="page2.jpg" alt="2ページ目">
+        </div>
+        <div class="page">
+          <img src="page3.jpg" alt="3ページ目">
+        </div>
+        <div class="page">
+          <img src="page4.jpg" alt="4ページ目">
+        </div>
+        <div class="page">
+          <img src="page5.jpg" alt="5ページ目">
+        </div>
+        <div class="page">
+          <img src="page6.jpg" alt="6ページ目">
+        </div>
+        <div class="page">
+          <img src="page7.jpg" alt="7ページ目">
+        </div>
+        <div class="page">
+          <img src="page8.jpg" alt="8ページ目">
+        </div>
+        <div class="page">
+          <img src="page9.jpg" alt="9ページ目">
+        </div>
+        <div class="page">
+          <img src="page10.jpg" alt="10ページ目">
+        </div>
+        <div class="page">
+          <img src="page11.jpg" alt="11ページ目">
+        </div>
+        <div class="page">
+          <img src="page12.jpg" alt="12ページ目">
+        </div>
+        <div class="page">
+          <img src="page13.jpg" alt="13ページ目">
+        </div>
+
+        <!-- 14枚目：背表紙 -->
+        <div class="page" data-density="hard">
+          <img src="page14.jpg" alt="背表紙">
+        </div>
+
       </div>
-
-      <div class="page">
-        <img src="page2.jpg" alt="2ページ目">
-      </div>
-
-      <div class="page">
-        <img src="page3.jpg" alt="3ページ目">
-      </div>
-
-      <div class="page">
-        <img src="page4.jpg" alt="4ページ目">
-      </div>
-
-      <div class="page">
-        <img src="page5.jpg" alt="5ページ目">
-      </div>
-
-      <div class="page">
-        <img src="page6.jpg" alt="6ページ目">
-      </div>
-
     </div>
-  </div>
-</main>
 
-<script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.min.js"></script>
+    <p id="message"></p>
+  </main>
 
-<script>
-window.addEventListener("load", () => {
-  const book = document.getElementById("book");
-  const wrap = document.getElementById("book-wrap");
+  <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.min.js"></script>
 
-  if (!window.St || !window.St.PageFlip) {
-    document.querySelector(".hint").textContent =
-      "本を読み込めませんでした。通信環境を確認してね。";
-    return;
-  }
+  <script>
+    window.addEventListener("load", () => {
+      const bookElement = document.getElementById("book");
+      const bookWrap = document.getElementById("book-wrap");
+      const message = document.getElementById("message");
 
-  // 1ページは2000×1600px。
-  // 見開き全体は横長になるので、画面内に収める。
-  const pageRatio = 2000 / 1600;
-  const spreadRatio = pageRatio * 2;
+      function showMessage(text) {
+        message.textContent = text;
+        message.style.display = "block";
+      }
 
-  const availableWidth = wrap.clientWidth;
-  const availableHeight = wrap.clientHeight;
+      if (!window.St || !window.St.PageFlip) {
+        showMessage(
+          "本を読み込めませんでした。通信環境を確認して再読み込みしてください。"
+        );
+        return;
+      }
 
-  const spreadWidth = Math.min(
-    availableWidth,
-    availableHeight * spreadRatio
-  );
+      // 画像は2000×1600px。
+      // 見開きは左右2ページなので、全体の比率は約2.5:1。
+      const spreadRatio = (2000 / 1600) * 2;
 
-  const spreadHeight = spreadWidth / spreadRatio;
+      function setBookSize() {
+        const availableWidth = bookWrap.clientWidth;
+        const availableHeight = bookWrap.clientHeight;
 
-  book.style.width = spreadWidth + "px";
-  book.style.height = spreadHeight + "px";
+        const spreadWidth = Math.min(
+          availableWidth,
+          availableHeight * spreadRatio
+        );
 
-  const pageFlip = new St.PageFlip(book, {
-    width: 400,
-    height: 320,
-    size: "stretch",
-    minWidth: 200,
-    maxWidth: 1600,
-    minHeight: 160,
-    maxHeight: 1280,
+        const spreadHeight = spreadWidth / spreadRatio;
 
-    usePortrait: false,
-    showCover: false,
-    startPage: 0,
+        bookElement.style.width = spreadWidth + "px";
+        bookElement.style.height = spreadHeight + "px";
+      }
 
-    drawShadow: true,
-    maxShadowOpacity: 0.3,
-    flippingTime: 850,
+      setBookSize();
 
-    mobileScrollSupport: false,
-    swipeDistance: 20,
-    useMouseEvents: true
-  });
+      const pageFlip = new St.PageFlip(bookElement, {
+        width: 400,
+        height: 320,
+        size: "stretch",
+        minWidth: 200,
+        maxWidth: 1600,
+        minHeight: 160,
+        maxHeight: 1280,
 
-  pageFlip.loadFromHTML(
-    document.querySelectorAll(".page")
-  );
-});
-</script>
+        startPage: 0,
+        usePortrait: false,
+        showCover: true,
 
+        drawShadow: true,
+        maxShadowOpacity: 0.3,
+        flippingTime: 850,
+
+        mobileScrollSupport: false,
+        swipeDistance: 20,
+        useMouseEvents: true
+      });
+
+      pageFlip.loadFromHTML(
+        document.querySelectorAll(".page")
+      );
+
+      // 画像の読み込みに失敗したときの案内
+      document.querySelectorAll(".page img").forEach((img) => {
+        img.addEventListener("error", () => {
+          showMessage(
+            "画像が表示されない場合は、GitHubに page1.jpg〜page14.jpg の名前でアップロードしたか確認してね。"
+          );
+        }, { once: true });
+      });
+
+      let resizeTimer;
+
+      function resizeBook() {
+        clearTimeout(resizeTimer);
+
+        resizeTimer = setTimeout(() => {
+          setBookSize();
+          pageFlip.update();
+        }, 200);
+      }
+
+      window.addEventListener("resize", resizeBook);
+      window.addEventListener("orientationchange", resizeBook);
+    });
+  </script>
 </body>
 </html>
