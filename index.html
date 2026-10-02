@@ -2,21 +2,23 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 <title>Birthday Book</title>
 
 <style>
 * {
   box-sizing: border-box;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
 html,
 body {
-  margin: 0;
   width: 100%;
   height: 100%;
+  margin: 0;
   overflow: hidden;
 }
 
@@ -24,137 +26,361 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-
   background:
-    radial-gradient(
-      circle,
-      #fffdf9 0%,
-      #e8e1d8 100%
-    );
-
-  font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    "Helvetica Neue",
-    sans-serif;
+    radial-gradient(circle at center, #faf8f4 0%, #e5dfd6 100%);
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
 }
 
-/* 本の入れ物 */
-#book {
-  width: 92vw;
-  max-width: 850px;
-  height: 70vh;
-  max-height: 600px;
+/* =========================
+   BOOK
+========================= */
+
+.book {
+  position: relative;
+
+  width: min(92vw, 820px);
+  aspect-ratio: 2 / 1;
+
+  perspective: 2200px;
+  transform-style: preserve-3d;
 }
 
-/* ページ */
-.page {
-  background: #fffdf9;
+/* =========================
+   BASE PAGES
+========================= */
 
-  color: #555;
+.base-page {
+  position: absolute;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  top: 0;
 
-  text-align: center;
+  width: 50%;
+  height: 100%;
 
   overflow: hidden;
 
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0,0,0,.07),
+      transparent 12%,
+      transparent 88%,
+      rgba(0,0,0,.035)
+    ),
+    #fffdf9;
+
   box-shadow:
-    0 4px 18px rgba(0,0,0,.12);
+    0 12px 35px rgba(0,0,0,.18);
 }
 
-/* ページの中身 */
-.page-content {
-  width: 100%;
+.left-page {
+  left: 0;
+
+  border-radius: 12px 0 0 12px;
+}
+
+.right-page {
+  right: 0;
+
+  border-radius: 0 12px 12px 0;
+}
+
+/* 本の中央部分 */
+.book::after {
+  content: "";
+
+  position: absolute;
+
+  left: 50%;
+  top: 0;
+
+  width: 3px;
   height: 100%;
+
+  transform: translateX(-50%);
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0,0,0,.12),
+      rgba(255,255,255,.7),
+      rgba(0,0,0,.08)
+    );
+
+  opacity: .55;
+
+  z-index: 8;
+
+  pointer-events: none;
+}
+
+/* =========================
+   MOVING PAPER
+========================= */
+
+.turn-page {
+  position: absolute;
+
+  left: 50%;
+  top: 0;
+
+  width: 50%;
+  height: 100%;
+
+  transform-origin: left center;
+
+  transform-style: preserve-3d;
+
+  z-index: 20;
+
+  touch-action: none;
+
+  cursor: grab;
+
+  will-change: transform;
+
+  /* 紙の初期位置 */
+  transform:
+    rotateY(0deg)
+    translateZ(0px)
+    scaleX(1);
+}
+
+.turn-page.dragging {
+  cursor: grabbing;
+}
+
+/* =========================
+   PAPER FACES
+========================= */
+
+.face {
+  position: absolute;
+
+  inset: 0;
+
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0,0,0,.085),
+      transparent 14%,
+      transparent 82%,
+      rgba(0,0,0,.045)
+    ),
+    #fffdf9;
+
+  backface-visibility: hidden;
+
+  transform-style: preserve-3d;
+}
+
+.front {
+  border-radius: 0 12px 12px 0;
+}
+
+.back {
+  transform: rotateY(180deg);
+
+  border-radius: 12px 0 0 12px;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0,0,0,.045),
+      transparent 18%,
+      transparent 88%,
+      rgba(0,0,0,.09)
+    ),
+    #fffdf9;
+}
+
+/* =========================
+   PAPER TEXTURE
+========================= */
+
+.face::before {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  pointer-events: none;
+
+  opacity: .13;
+
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      rgba(0,0,0,.025) 0px,
+      rgba(0,0,0,.025) 1px,
+      transparent 1px,
+      transparent 4px
+    );
+}
+
+/* =========================
+   PAGE CONTENT
+========================= */
+
+.text {
+  position: absolute;
+
+  inset: 0;
 
   display: flex;
-  align-items: center;
+
   justify-content: center;
+  align-items: center;
 
-  padding: 30px;
+  text-align: center;
 
-  font-size: clamp(
-    18px,
-    4vw,
-    32px
-  );
+  padding: 20px;
+
+  font-size: clamp(18px, 4vw, 32px);
 
   line-height: 1.6;
+
+  color: #555;
+
+  pointer-events: none;
 }
 
-/* Canva画像を入れる場合 */
-.page-content img {
-  width: 100%;
+/* =========================
+   PAGE EDGE
+========================= */
+
+.turn-page::after {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  right: -2px;
+
+  width: 4px;
   height: 100%;
 
-  object-fit: cover;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0,0,0,.12),
+      rgba(255,255,255,.8),
+      rgba(0,0,0,.12)
+    );
 
-  display: block;
+  opacity: .7;
+
+  pointer-events: none;
+}
+
+/* =========================
+   MOVING SHADOW
+========================= */
+
+.page-shadow {
+  position: absolute;
+
+  left: 50%;
+  top: 3%;
+
+  width: 48%;
+  height: 94%;
+
+  z-index: 12;
+
+  pointer-events: none;
+
+  background: rgba(0,0,0,.22);
+
+  filter: blur(18px);
+
+  opacity: 0;
+
+  transform-origin: left center;
+
+  will-change: transform, opacity;
+}
+
+/* =========================
+   LITTLE HINT
+========================= */
+
+.hint {
+  position: fixed;
+
+  bottom: 25px;
+  left: 0;
+  right: 0;
+
+  text-align: center;
+
+  color: rgba(0,0,0,.42);
+
+  font-size: 13px;
+
+  pointer-events: none;
+
+  transition: opacity .5s ease;
+}
+
+.hint.hide {
+  opacity: 0;
 }
 </style>
-
-<!-- ページめくりライブラリ -->
-<script
-  src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.min.js">
-</script>
-
 </head>
+
 
 <body>
 
-<div id="book">
+<div class="book">
 
-  <!-- 表紙 -->
-  <div class="page" data-density="hard">
+  <!-- 左ページ -->
+  <div class="base-page left-page">
 
-    <div class="page-content">
-      🎂<br>
+    <div class="text">
       Birthday Book
     </div>
 
   </div>
 
 
-  <!-- 1ページ -->
-  <div class="page">
+  <!-- 右ページ -->
+  <div class="base-page right-page"></div>
 
-    <div class="page-content">
-      ここから<br>
-      大切なページ
-    </div>
 
+  <!-- ページの影 -->
+  <div
+    class="page-shadow"
+    id="pageShadow">
   </div>
 
 
-  <!-- 2ページ -->
-  <div class="page">
+  <!-- 実際に動く紙 -->
+  <div
+    class="turn-page"
+    id="turnPage">
 
-    <div class="page-content">
-      指でページを<br>
-      めくってみてね
+    <!-- 表 -->
+    <div class="face front">
+
+      <div class="text">
+        指で紙をつかんで<br>
+        左へ動かしてみてね
+      </div>
+
     </div>
 
-  </div>
 
+    <!-- 裏 -->
+    <div class="face back">
 
-  <!-- 3ページ -->
-  <div class="page">
+      <div class="text">
+        右へ戻してみてね
+      </div>
 
-    <div class="page-content">
-      Happy Birthday!
-    </div>
-
-  </div>
-
-
-  <!-- 最後 -->
-  <div class="page" data-density="hard">
-
-    <div class="page-content">
-      FIN
     </div>
 
   </div>
@@ -162,82 +388,403 @@ body {
 </div>
 
 
+<div
+  class="hint"
+  id="hint">
+  ページを指でドラッグしてみてね
+</div>
+
+
 <script>
 
-const book =
-  document.getElementById("book");
+/* =====================================================
+   ELEMENTS
+===================================================== */
+
+const page =
+  document.getElementById("turnPage");
+
+const shadow =
+  document.getElementById("pageShadow");
+
+const hint =
+  document.getElementById("hint");
 
 
-const pageFlip =
-  new St.PageFlip(
-    book,
-    {
+/* =====================================================
+   STATE
+===================================================== */
 
-      /* 基準サイズ */
-      width: 400,
-      height: 560,
+let dragging = false;
 
-      /* 画面に合わせて伸縮 */
-      size: "stretch",
+let startX = 0;
 
-      minWidth: 280,
-      maxWidth: 800,
+let startAngle = 0;
 
-      minHeight: 390,
-      maxHeight: 650,
+let currentAngle = 0;
 
-      /* 本を中央に合わせる */
-      autoSize: true,
+let pointerId = null;
 
-      /* 表紙あり */
-      showCover: true,
 
-      /* 紙を柔らかくする */
-      mobileScrollSupport: false,
+/* =====================================================
+   GET POINTER X
+===================================================== */
 
-      /* 指・マウス操作 */
-      useMouseEvents: true,
+function getX(e) {
 
-      /* ページをめくる速度 */
-      flippingTime: 850,
+  if (
+    e.touches &&
+    e.touches.length
+  ) {
+    return e.touches[0].clientX;
+  }
 
-      /* ページの影 */
-      drawShadow: true,
+  return e.clientX;
+}
 
-      /* 影の濃さ */
-      maxShadowOpacity: 0.45,
 
-      /* クリックだけで勝手にめくらない */
-      disableFlipByClick: true,
+/* =====================================================
+   CLAMP
+===================================================== */
 
-      /* スマホでの最低ドラッグ距離 */
-      swipeDistance: 20
+function clamp(
+  value,
+  min,
+  max
+) {
 
-    }
+  return Math.max(
+    min,
+    Math.min(max, value)
   );
 
-
-/*
-  HTMLページを読み込む
-*/
-pageFlip.loadFromHTML(
-  document.querySelectorAll(".page")
-);
+}
 
 
-/*
-  ページ番号を確認
-*/
-pageFlip.on(
-  "flip",
+/* =====================================================
+   UPDATE PAGE
+===================================================== */
+
+function updatePage(angle) {
+
+  angle =
+    clamp(
+      angle,
+      -180,
+      0
+    );
+
+
+  currentAngle =
+    angle;
+
+
+  /*
+    0〜1に変換
+  */
+
+  const progress =
+    Math.abs(angle) / 180;
+
+
+  /*
+    紙が中央付近で
+    少しだけしなる
+  */
+
+  const bend =
+    Math.sin(
+      progress * Math.PI
+    );
+
+
+  /*
+    奥行き
+  */
+
+  const depth =
+    bend * 10;
+
+
+  /*
+    横方向の縮み
+  */
+
+  const scaleX =
+    1 -
+    bend * 0.035;
+
+
+  /*
+    紙の回転
+  */
+
+  page.style.transform =
+    `
+      rotateY(${angle}deg)
+      translateZ(${depth}px)
+      scaleX(${scaleX})
+    `;
+
+
+  /*
+    ページの影
+  */
+
+  const shadowOpacity =
+    bend * .55;
+
+
+  shadow.style.opacity =
+    shadowOpacity;
+
+
+  /*
+    影もページの動きに合わせる
+  */
+
+  const shadowRotate =
+    angle * .48;
+
+
+  const shadowScale =
+    1 +
+    bend * .25;
+
+
+  shadow.style.transform =
+    `
+      rotateY(${shadowRotate}deg)
+      scaleX(${shadowScale})
+    `;
+
+}
+
+
+/* =====================================================
+   POINTER DOWN
+===================================================== */
+
+page.addEventListener(
+  "pointerdown",
   function(e) {
 
-    console.log(
-      "現在のページ:",
-      e.data
+    dragging = true;
+
+    pointerId =
+      e.pointerId;
+
+    page.classList.add(
+      "dragging"
+    );
+
+
+    /*
+      今の角度を基準にする
+    */
+
+    startAngle =
+      currentAngle;
+
+
+    startX =
+      getX(e);
+
+
+    /*
+      アニメーション解除
+    */
+
+    page.style.transition =
+      "none";
+
+
+    /*
+      iPhone / PC
+    */
+
+    try {
+
+      page.setPointerCapture(
+        e.pointerId
+      );
+
+    } catch (_) {}
+
+
+    /*
+      ヒントを消す
+    */
+
+    hint.classList.add(
+      "hide"
     );
 
   }
+);
+
+
+/* =====================================================
+   POINTER MOVE
+===================================================== */
+
+page.addEventListener(
+  "pointermove",
+  function(e) {
+
+    if (!dragging) {
+      return;
+    }
+
+
+    const x =
+      getX(e);
+
+
+    /*
+      指の移動距離
+    */
+
+    const distance =
+      x - startX;
+
+
+    /*
+      1px → 0.9度
+    */
+
+    const angle =
+      startAngle +
+      distance * .9;
+
+
+    /*
+      リアルタイム更新
+    */
+
+    updatePage(
+      angle
+    );
+
+  }
+);
+
+
+/* =====================================================
+   RELEASE
+===================================================== */
+
+function releasePage() {
+
+  if (!dragging) {
+    return;
+  }
+
+
+  dragging = false;
+
+  page.classList.remove(
+    "dragging"
+  );
+
+
+  /*
+    半分以上なら
+    最後までめくる
+  */
+
+  const shouldFlip =
+    Math.abs(currentAngle) > 90;
+
+
+  page.style.transition =
+    `
+      transform
+      .48s
+      cubic-bezier(
+        .22,
+        .61,
+        .36,
+        1
+      )
+    `;
+
+
+  if (shouldFlip) {
+
+    updatePage(
+      -180
+    );
+
+  } else {
+
+    updatePage(
+      0
+    );
+
+  }
+
+
+  /*
+    アニメーション終了後
+    transitionを解除
+  */
+
+  setTimeout(
+    function() {
+
+      page.style.transition =
+        "";
+
+    },
+    520
+  );
+
+}
+
+
+/* =====================================================
+   POINTER UP
+===================================================== */
+
+page.addEventListener(
+  "pointerup",
+  releasePage
+);
+
+page.addEventListener(
+  "pointercancel",
+  releasePage
+);
+
+
+/* =====================================================
+   TOUCH MOVE
+===================================================== */
+
+page.addEventListener(
+  "touchmove",
+  function(e) {
+
+    if (dragging) {
+
+      e.preventDefault();
+
+    }
+
+  },
+  {
+    passive: false
+  }
+);
+
+
+/* =====================================================
+   INITIAL
+===================================================== */
+
+updatePage(
+  0
 );
 
 </script>
