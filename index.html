@@ -3,83 +3,74 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#f5efe5">
-  <title>Birthday Book</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Happy Birthday</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.min.js"></script>
 
   <style>
-    :root {
-      --background: #f5efe5;
-      --paper: #fffdf8;
-      --text: #756458;
-    }
-
     * {
       box-sizing: border-box;
     }
 
     html, body {
-      margin: 0;
       width: 100%;
       height: 100%;
+      margin: 0;
       overflow: hidden;
-      background: var(--background);
-      font-family: -apple-system, BlinkMacSystemFont,
-        "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
-    }
-
-    body {
-      color: var(--text);
+      font-family: sans-serif;
+      background: #18131c;
     }
 
     /* 背景動画 */
-    #bg-video {
+    #background-video {
       position: fixed;
       inset: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
       z-index: 0;
-      background: var(--background);
+      background: #18131c;
     }
 
-    /* 動画を少し落ち着いた雰囲気にする */
-    .video-overlay {
+    /* 動画の上にかける薄いフィルター */
+    #background-shade {
       position: fixed;
       inset: 0;
       z-index: 1;
-      background: rgba(30, 20, 25, 0.12);
-      pointer-events: none;
+      background: rgba(20, 10, 25, 0.2);
     }
 
-    /* 最初の封筒画面 */
-    #intro {
+    /* 封筒の画面 */
+    #envelope-screen {
       position: fixed;
       inset: 0;
       z-index: 2;
       display: flex;
-      align-items: center;
+      flex-direction: column;
       justify-content: center;
+      align-items: center;
+      gap: 20px;
       padding: 24px;
-      padding-top: max(24px, env(safe-area-inset-top));
-      padding-bottom: max(24px, env(safe-area-inset-bottom));
-      transition: opacity 0.6s ease;
+      transition: opacity 0.8s ease;
+    }
+
+    #envelope-screen p {
+      color: white;
+      font-size: 14px;
+      letter-spacing: 0.15em;
+      text-shadow: 0 2px 8px #000;
     }
 
     #envelope-button {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: min(78vw, 380px);
+      display: block;
+      width: min(75vw, 340px);
       padding: 0;
-      border: 0;
+      border: none;
       background: transparent;
       cursor: pointer;
+      animation: float 2.5s ease-in-out infinite;
       -webkit-tap-highlight-color: transparent;
-      animation: float 3s ease-in-out infinite;
-      transition:
-        transform 0.7s ease,
-        opacity 0.7s ease;
     }
 
     #envelope-button img {
@@ -87,29 +78,17 @@
       width: 100%;
       height: auto;
       object-fit: contain;
-      filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.2));
-      user-select: none;
-      -webkit-user-drag: none;
-    }
-
-    #envelope-button.opening {
-      animation: none;
-      transform: translateY(-35px) rotateX(35deg) scale(1.12);
-      opacity: 0;
-    }
-
-    #intro.fade-out {
-      opacity: 0;
-      pointer-events: none;
+      filter: drop-shadow(0 12px 24px rgba(0,0,0,0.25));
     }
 
     @keyframes float {
-      0%, 100% {
-        transform: translateY(0);
-      }
-      50% {
-        transform: translateY(-10px);
-      }
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    #envelope-screen.opening {
+      opacity: 0;
+      pointer-events: none;
     }
 
     /* 本の画面 */
@@ -119,51 +98,26 @@
       z-index: 3;
       display: none;
       flex-direction: column;
+      justify-content: center;
       align-items: center;
-      padding:
-        max(12px, env(safe-area-inset-top))
-        max(8px, env(safe-area-inset-right))
-        max(8px, env(safe-area-inset-bottom))
-        max(8px, env(safe-area-inset-left));
+      padding: 12px;
       opacity: 0;
+      transition: opacity 1s ease;
     }
 
     #book-screen.visible {
-      display: flex;
-      animation: book-appear 1s ease forwards;
-    }
-
-    @keyframes book-appear {
-      from {
-        opacity: 0;
-        transform: translateY(18px) scale(0.97);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
-    }
-
-    #book-wrap {
-      width: 100%;
-      flex: 1 1 auto;
-      min-height: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      background: transparent;
+      opacity: 1;
     }
 
     #book {
+      width: min(96vw, 900px);
+      height: min(48vh, 360px);
       margin: 0 auto;
-      background: transparent;
-      box-shadow: 0 14px 36px rgba(40, 25, 25, 0.22);
     }
 
     .page {
+      background: #fff;
       overflow: hidden;
-      background: var(--paper);
     }
 
     .page img {
@@ -171,41 +125,66 @@
       width: 100%;
       height: 100%;
       object-fit: contain;
-      background: var(--paper);
-      user-select: none;
-      -webkit-user-drag: none;
-      pointer-events: none;
     }
 
-    /* Apple Musicプレイヤー */
-    #music-area {
+    /* 小さな音楽ボタン */
+    #music-button {
+      position: fixed;
+      right: 16px;
+      bottom: 18px;
+      z-index: 10;
+      width: 44px;
+      height: 44px;
+      border: 1px solid rgba(255,255,255,0.65);
+      border-radius: 50%;
+      color: white;
+      background: rgba(30, 20, 35, 0.55);
+      backdrop-filter: blur(8px);
+      font-size: 21px;
+      cursor: pointer;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.2);
+    }
+
+    /* ボタンを押したときだけ出る音楽パネル */
+    #music-panel {
+      position: fixed;
+      right: 12px;
+      bottom: 72px;
+      z-index: 11;
+      width: min(340px, calc(100vw - 24px));
+      padding: 10px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.96);
+      box-shadow: 0 5px 24px rgba(0,0,0,0.25);
       display: none;
-      flex: 0 0 auto;
-      width: 100%;
-      max-width: 500px;
-      padding-top: 6px;
     }
 
-    #music-area iframe {
+    #music-panel.open {
+      display: block;
+    }
+
+    #music-panel p {
+      margin: 0 0 8px;
+      color: #514455;
+      font-size: 12px;
+    }
+
+    #music-player {
       display: block;
       width: 100%;
       height: 150px;
       border: 0;
-      border-radius: 12px;
+      border-radius: 8px;
     }
 
-    #message {
-      display: none;
-      color: white;
-      font-size: 13px;
-      line-height: 1.5;
-      text-align: center;
-      padding: 8px;
-    }
+    /* スマホ向け */
+    @media (max-height: 500px) {
+      #book {
+        height: 65vh;
+      }
 
-    @media (prefers-reduced-motion: reduce) {
       #envelope-button {
-        animation: none;
+        width: min(45vw, 250px);
       }
     }
   </style>
@@ -213,206 +192,149 @@
 
 <body>
 
-  <!-- 背景動画：自動再生・ミュート・ループ -->
-  <video
-    id="bg-video"
-    autoplay
-    muted
-    loop
-    playsinline
-    preload="auto"
-  >
-    <source src="background.mp4" type="video/mp4">
+  <!-- 背景動画：index.html と同じ階層に置く -->
+  <video id="background-video" autoplay muted loop playsinline>
+    <source src="./background.mp4.MP4" type="video/mp4">
   </video>
+  <div id="background-shade"></div>
 
-  <div class="video-overlay"></div>
-
-  <!-- 最初に表示する封筒 -->
-  <section id="intro">
-    <button
-      id="envelope-button"
-      type="button"
-      aria-label="封筒を開く"
-    >
-      <img src="envelope.png" alt="手紙の封筒">
+  <!-- 封筒 -->
+  <section id="envelope-screen">
+    <button id="envelope-button" aria-label="手紙を開く">
+      <img
+        src="./envelope.png.PNG"
+        alt="封筒"
+        onerror="this.style.display='none'; document.getElementById('envelope-error').style.display='block';"
+      >
     </button>
+
+    <p>Tap to open</p>
+    <p id="envelope-error" style="display:none;">
+      封筒の画像が読み込めません。envelope.png の名前と場所を確認してね。
+    </p>
   </section>
 
-  <!-- 本を開いたあとの画面 -->
-  <main id="book-screen">
+  <!-- 本 -->
+  <section id="book-screen">
+    <div id="book">
 
-    <div id="book-wrap">
-      <div id="book" aria-label="Birthday book">
-
-        <!-- 表紙 -->
-        <div class="page" data-density="hard">
-          <img src="page1.jpg" alt="表紙">
-        </div>
-
-        <!-- 中のページ -->
-        <div class="page"><img src="page2.jpg" alt="2ページ目"></div>
-        <div class="page"><img src="page3.jpg" alt="3ページ目"></div>
-        <div class="page"><img src="page4.jpg" alt="4ページ目"></div>
-        <div class="page"><img src="page5.jpg" alt="5ページ目"></div>
-        <div class="page"><img src="page6.jpg" alt="6ページ目"></div>
-        <div class="page"><img src="page7.jpg" alt="7ページ目"></div>
-        <div class="page"><img src="page8.jpg" alt="8ページ目"></div>
-        <div class="page"><img src="page9.jpg" alt="9ページ目"></div>
-        <div class="page"><img src="page10.jpg" alt="10ページ目"></div>
-        <div class="page"><img src="page11.jpg" alt="11ページ目"></div>
-        <div class="page"><img src="page12.jpg" alt="12ページ目"></div>
-        <div class="page"><img src="page13.jpg" alt="13ページ目"></div>
-
-        <!-- 裏表紙 -->
-        <div class="page" data-density="hard">
-          <img src="page14.jpg" alt="裏表紙">
-        </div>
-
+      <div class="page" data-density="hard">
+        <img src="./page1.jpg" alt="表紙">
       </div>
+
+      <div class="page"><img src="./page2.jpg" alt="ページ2"></div>
+      <div class="page"><img src="./page3.jpg" alt="ページ3"></div>
+      <div class="page"><img src="./page4.jpg" alt="ページ4"></div>
+      <div class="page"><img src="./page5.jpg" alt="ページ5"></div>
+      <div class="page"><img src="./page6.jpg" alt="ページ6"></div>
+      <div class="page"><img src="./page7.jpg" alt="ページ7"></div>
+      <div class="page"><img src="./page8.jpg" alt="ページ8"></div>
+      <div class="page"><img src="./page9.jpg" alt="ページ9"></div>
+      <div class="page"><img src="./page10.jpg" alt="ページ10"></div>
+      <div class="page"><img src="./page11.jpg" alt="ページ11"></div>
+      <div class="page"><img src="./page12.jpg" alt="ページ12"></div>
+      <div class="page"><img src="./page13.jpg" alt="ページ13"></div>
+
+      <div class="page" data-density="hard">
+        <img src="./page14.jpg" alt="裏表紙">
+      </div>
+
     </div>
+  </section>
 
-    <!-- Apple Musicの再生プレイヤー -->
-    <div id="music-area">
-      <iframe
-        id="music-player"
-        title="Apple Music"
-        allow="autoplay *; encrypted-media *; fullscreen *; clipboard-write"
-        sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-top-navigation-by-user-activation"
-        loading="eager"
-      ></iframe>
-    </div>
+  <!-- 小さな音楽ボタン -->
+  <button id="music-button" aria-label="音楽を表示" title="Music">♫</button>
 
-    <p id="message"></p>
-  </main>
-
-  <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.min.js"></script>
+  <!-- ボタンを押すと表示 -->
+  <div id="music-panel">
+    <p>🎵 Birthday music</p>
+    <iframe
+      id="music-player"
+      title="Apple Music"
+      allow="autoplay *; encrypted-media *; fullscreen *; clipboard-write"
+      loading="eager"
+    ></iframe>
+  </div>
 
   <script>
-    window.addEventListener("load", () => {
-      const video = document.getElementById("bg-video");
-      const intro = document.getElementById("intro");
-      const envelopeButton = document.getElementById("envelope-button");
-      const bookScreen = document.getElementById("book-screen");
-      const bookElement = document.getElementById("book");
-      const bookWrap = document.getElementById("book-wrap");
-      const musicArea = document.getElementById("music-area");
-      const musicPlayer = document.getElementById("music-player");
-      const message = document.getElementById("message");
+    const envelopeScreen = document.getElementById("envelope-screen");
+    const envelopeButton = document.getElementById("envelope-button");
+    const bookScreen = document.getElementById("book-screen");
+    const musicButton = document.getElementById("music-button");
+    const musicPanel = document.getElementById("music-panel");
+    const musicPlayer = document.getElementById("music-player");
+    const backgroundVideo = document.getElementById("background-video");
 
-      let opened = false;
-      let pageFlip = null;
-      let resizeTimer;
+    let pageFlip = null;
+    let musicLoaded = false;
 
-      // 背景動画を再生する
-      video.play().catch(() => {
-        // iPhone側の制限などで失敗しても、封筒操作は可能
-      });
+    // iPhoneで背景動画の再生を試す
+    function playBackground() {
+      backgroundVideo.muted = true;
+      backgroundVideo.play().catch(() => {});
+    }
 
-      function showMessage(text) {
-        message.textContent = text;
-        message.style.display = "block";
-      }
+    window.addEventListener("load", playBackground);
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) playBackground();
+    });
 
-      // 縦画面でも本の見開きが収まるサイズにする
-      function setBookSize() {
-        const availableWidth = bookWrap.clientWidth;
-        const availableHeight = bookWrap.clientHeight;
-        const spreadRatio = (2000 / 1600) * 2;
+    // 封筒をタップ
+    envelopeButton.addEventListener("click", () => {
+      if (pageFlip) return;
 
-        const spreadWidth = Math.min(
-          availableWidth,
-          availableHeight * spreadRatio
-        );
-
-        const spreadHeight = spreadWidth / spreadRatio;
-
-        bookElement.style.width = spreadWidth + "px";
-        bookElement.style.height = spreadHeight + "px";
-      }
-
-      function startBook() {
-        if (!window.St || !window.St.PageFlip) {
-          showMessage(
-            "本を読み込めませんでした。通信環境を確認して再読み込みしてください。"
-          );
-          return;
-        }
-
-        setBookSize();
-
-        pageFlip = new St.PageFlip(bookElement, {
-          width: 400,
-          height: 320,
-          size: "stretch",
-          minWidth: 200,
-          maxWidth: 1600,
-          minHeight: 160,
-          maxHeight: 1280,
-
-          startPage: 0,
-          usePortrait: false,
-          showCover: true,
-
-          drawShadow: true,
-          maxShadowOpacity: 0.3,
-          flippingTime: 850,
-
-          mobileScrollSupport: false,
-          swipeDistance: 20,
-          useMouseEvents: true
-        });
-
-        pageFlip.loadFromHTML(
-          document.querySelectorAll("#book .page")
-        );
-
-        document.querySelectorAll("#book .page img").forEach((img) => {
-          img.addEventListener("error", () => {
-            showMessage(
-              "画像を読み込めませんでした。page1.jpg〜page14.jpgの名前を確認してください。"
-            );
-          }, { once: true });
-        });
-      }
-
-      // 封筒をタップしたときの処理
-      envelopeButton.addEventListener("click", () => {
-        if (opened) return;
-        opened = true;
-
-        // タップ直後にApple Musicプレイヤーを読み込む
+      // 音楽の読み込み・自動再生を試す
+      if (!musicLoaded) {
         musicPlayer.src =
           "https://embed.music.apple.com/jp/album/joyride/1831921913?i=1831921929&autoplay=1";
-
-        envelopeButton.classList.add("opening");
-        intro.classList.add("fade-out");
-
-        // 封筒のアニメーション後に本を表示
-        setTimeout(() => {
-          intro.style.display = "none";
-          bookScreen.classList.add("visible");
-          musicArea.style.display = "block";
-
-          // 表示領域が確定してから本を初期化
-          requestAnimationFrame(() => {
-            startBook();
-          });
-        }, 650);
-      });
-
-      function resizeBook() {
-        clearTimeout(resizeTimer);
-
-        resizeTimer = setTimeout(() => {
-          if (pageFlip) {
-            setBookSize();
-            pageFlip.update();
-          }
-        }, 200);
+        musicLoaded = true;
       }
 
-      window.addEventListener("resize", resizeBook);
-      window.addEventListener("orientationchange", resizeBook);
+      envelopeScreen.classList.add("opening");
+
+      setTimeout(() => {
+        envelopeScreen.style.display = "none";
+        bookScreen.style.display = "flex";
+
+        requestAnimationFrame(() => {
+          bookScreen.classList.add("visible");
+
+          const bookElement = document.getElementById("book");
+
+          pageFlip = new St.PageFlip(bookElement, {
+            width: 400,
+            height: 320,
+            size: "stretch",
+            minWidth: 150,
+            maxWidth: 1000,
+            minHeight: 120,
+            maxHeight: 800,
+            showCover: true,
+            usePortrait: false,
+            drawShadow: true,
+            flippingTime: 800,
+            maxShadowOpacity: 0.25,
+            mobileScrollSupport: false,
+            clickEventForward: true,
+            useMouseEvents: true
+          });
+
+          pageFlip.loadFromHTML(
+            document.querySelectorAll("#book .page")
+          );
+        });
+      }, 700);
+    });
+
+    // 音楽パネルを表示／非表示
+    musicButton.addEventListener("click", () => {
+      if (!musicLoaded) {
+        musicPlayer.src =
+          "https://embed.music.apple.com/jp/album/joyride/1831921913?i=1831921929";
+        musicLoaded = true;
+      }
+
+      musicPanel.classList.toggle("open");
     });
   </script>
 
