@@ -14,8 +14,7 @@
       box-sizing: border-box;
     }
 
-    html,
-    body {
+    html, body {
       width: 100%;
       height: 100%;
       margin: 0;
@@ -97,15 +96,11 @@
     }
 
     @keyframes float {
-      0%, 100% {
-        transform: translateY(0);
-      }
-      50% {
-        transform: translateY(-9px);
-      }
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-9px); }
     }
 
-    /* 本の画面：表示領域を固定 */
+    /* 本の画面 */
     #book-screen {
       position: fixed;
       inset: 0;
@@ -124,8 +119,9 @@
     }
 
     /*
-      本のサイズを固定し、画面中央に配置。
-      1ページ 400 x 320、見開き 800 x 320 の比率。
+      見開き時の表示領域。
+      表紙・裏表紙では位置をずらして、
+      1枚のページが画面中央に来るようにする。
     */
     #book-frame {
       position: relative;
@@ -133,10 +129,7 @@
       width: min(96vw, 900px, 120vh);
       aspect-ratio: 2.5 / 1;
       max-height: 48vh;
-      margin: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      transition: transform 0.55s ease;
     }
 
     #book {
@@ -160,12 +153,24 @@
       -webkit-user-drag: none;
     }
 
-    /* PageFlipの外側の配置 */
     #book .stf__parent {
       margin: 0 auto !important;
     }
 
-    /* 音楽ボタン */
+    /*
+      表紙は右側にあるため、本の表示全体を左へ。
+      裏表紙は左側にあるため、右へ。
+      これで1枚のページが中央に近づく。
+    */
+    #book-screen.front-cover #book-frame {
+      transform: translateX(calc(min(96vw, 900px, 120vh) / -4));
+    }
+
+    #book-screen.back-cover #book-frame {
+      transform: translateX(calc(min(96vw, 900px, 120vh) / 4));
+    }
+
+    /* 小さな音楽ボタン */
     #music-button {
       position: fixed;
       right: 16px;
@@ -185,7 +190,7 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    /* 音楽プレイヤーは必要なときだけ表示 */
+    /* 音楽プレイヤー */
     #music-panel {
       position: fixed;
       right: 12px;
@@ -300,7 +305,7 @@
     </div>
   </section>
 
-  <!-- 小さな音楽ボタン -->
+  <!-- 音楽ボタン -->
   <button id="music-button" aria-label="音楽プレイヤーを開く" title="Music">
     ♫
   </button>
@@ -330,6 +335,9 @@
     const bookScreen =
       document.getElementById("book-screen");
 
+    const bookFrame =
+      document.getElementById("book-frame");
+
     const musicButton =
       document.getElementById("music-button");
 
@@ -349,45 +357,46 @@
     let musicLoaded = false;
     let opening = false;
 
-    /*
-      Apple Musicの曲URL。
-      start=0で先頭からの再生をリクエストする。
-      実際の再生位置はApple Music側の仕様に依存する。
-    */
     const musicURL =
-      "https://embed.music.apple.com/jp/album/joyride/1831921913?i=1831921929&autoplay=1&start=0";
+      "https://embed.music.apple.com/jp/album/joyride/1831921913?i=1831921929&autoplay=1";
 
     function playBackground() {
       backgroundVideo.muted = true;
-
-      backgroundVideo.play().catch(() => {
-        // iPhone側で自動再生が制限された場合はそのまま表示
-      });
+      backgroundVideo.play().catch(() => {});
     }
 
     window.addEventListener("load", playBackground);
 
     document.addEventListener("visibilitychange", () => {
-      if (!document.hidden) {
-        playBackground();
-      }
+      if (!document.hidden) playBackground();
     });
 
+    /*
+      音楽プレイヤーは一度だけ読み込む。
+      本の画面に切り替わっても再読み込みしない。
+    */
     function loadMusic() {
-  musicPlayer.src = "";
-  musicLoaded = false;
+      if (musicLoaded) return;
 
-  musicPlayer.src =
-    "https://embed.music.apple.com/jp/album/joyride/1831921913?i=1831921929&autoplay=1";
+      musicPlayer.src = musicURL;
+      musicLoaded = true;
+    }
 
-  musicLoaded = true;
-}
+    function updateCoverPosition(pageIndex) {
+      bookScreen.classList.remove("front-cover", "back-cover");
+
+      if (pageIndex === 0) {
+        bookScreen.classList.add("front-cover");
+      } else if (pageIndex === 13) {
+        bookScreen.classList.add("back-cover");
+      }
+    }
 
     function openBook() {
       if (opening) return;
       opening = true;
 
-      // 封筒を押したタイミングで音楽の読み込みを試す
+      // 封筒をタップした時点で音楽を読み込む
       loadMusic();
 
       envelopeScreen.classList.add("opening");
@@ -402,13 +411,6 @@
           const bookElement =
             document.getElementById("book");
 
-          const frame =
-            document.getElementById("book-frame");
-
-          const frameWidth = frame.clientWidth;
-          const frameHeight = frame.clientHeight;
-
-          // 実際の表示領域に合わせて1ページの基準寸法を設定
           pageFlip = new St.PageFlip(bookElement, {
             width: 400,
             height: 320,
@@ -431,13 +433,21 @@
           pageFlip.loadFromHTML(
             document.querySelectorAll("#book .page")
           );
+
+          // 最初は表紙を中央寄せ
+          updateCoverPosition(0);
+
+          // ページが変わるたびに位置を調整
+          pageFlip.on("flip", (event) => {
+            updateCoverPosition(event.data);
+          });
         });
       }, 700);
     }
 
     envelopeButton.addEventListener("click", openBook);
 
-    // 音楽パネルを表示／非表示
+    // 音楽パネルの表示／非表示
     musicButton.addEventListener("click", () => {
       loadMusic();
       musicPanel.classList.toggle("open");
